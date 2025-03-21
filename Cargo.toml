@@ -14,7 +14,7 @@ name = "awapi"
 path = "src/main.rs"
 
 [features]
-# updated for autonomi v0.2.4
+# updated for autonomi 0.4.2
 default = ["skip-network-compatibility-check", "metrics"]
 metrics = ["ant-logging/process-metrics"]
 skip-network-compatibility-check = []   # Avoid need to upload avp type and include xor address in build
