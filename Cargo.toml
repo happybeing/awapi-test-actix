@@ -1,7 +1,66 @@
 [package]
+authors = ["Mark Hughes"]
 name = "awapi-test-actix"
+description = "Autonommi localhost web API - test using Actix-Web"
+license = "AGPL-3.0"
 version = "0.1.0"
 edition = "2021"
+homepage = "https://happybeing.com"
+readme = "README.md"
+repository = "https://github.com/happybeing"
+
+[[bin]]
+name = "awapi"
+path = "src/main.rs"
+
+[features]
+# updated for autonomi v0.2.4
+default = ["skip-network-compatibility-check", "metrics"]
+metrics = ["ant-logging/process-metrics"]
+skip-network-compatibility-check = []   # Avoid need to upload avp type and include xor address in build
 
 [dependencies]
+### Dependencies for an Autonomi client
+
+# Generated using: awe-dependencies --branch stable
+autonomi = { version = "0.4.2" }
+ant-bootstrap = { version = "0.2.0" }
+ant-build-info = { version = "0.1.26" }
+ant-logging = { version = "0.2.48" }
+ant-networking = { version = "0.3.8" }
+evmlib = { version = "0.2.1" }
+
+## Local: dweb
+# dweb = { version = "0.3.1", path = "../../autonomi/dweb/dweb-lib" }
+dweb = { version = "0.3.1" }
+
+## Everything else
 actix-web = "4"
+clap = { version = "4.2.1", features = ["derive"] }
+color-eyre = "~0.6"
+const-hex = "1.13.1"
+dirs-next = "~2.0.0"
+hex = "0.4.3"
+indicatif = { version = "0.17.5", features = ["tokio"] }
+prettytable = "0.10.0"
+rand = { version = "~0.8.5", features = ["small_rng"] }
+ring = "0.17.8"
+rpassword = "7.0"
+serde_json = "1.0.132"
+serde = "1.0.210"
+# TODO limit features (copied from Autnomi-cli)
+tokio = { version = "1.32.0", features = [
+    "io-util",
+    "macros",
+    "parking_lot",
+    "rt",
+    "sync",
+    "time",
+    "fs",
+] }
+thiserror = "1.0"
+tracing = { version = "~0.1.26" }
+walkdir = "2.5.0"
+xor_name = "5.0.0"
+utf-8 = "0.7.6"
+
