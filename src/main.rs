@@ -18,17 +18,20 @@
 
 */
 
-#[macro_use]
-extern crate tracing;
+// #[macro_use]
+// extern crate tracing;
 
 mod actions;
 mod opt;
+mod test;
 
 use std::io;
 use std::time::Duration;
 
 use clap::Parser;
 use color_eyre::{eyre::eyre, Result};
+use utoipa_swagger_ui::SwaggerUi;
+use utoipauto::utoipauto;
 use xor_name::XorName;
 
 use dweb::autonomi::access;
@@ -46,6 +49,14 @@ use actix_web::{get, post, web, App, HttpRequest, HttpResponse, HttpServer, Resp
 
 const CONNECTION_TIMEOUT: u64 = 75;
 
+// Rust analyzer reports an error here but it can be ignored (https://github.com/ProbablyClem/utoipauto/issues/36)
+#[utoipauto(paths = "./src")]
+#[derive(Debug, OpenApi)]
+#[openapi(info(title = "Some Test Api"))]
+#[openapi(paths(get_pet_by_id, show_request, test::test_hello))]
+pub(crate) struct ApiDoc;
+// struct ApiDoc;
+
 #[get("/")]
 async fn hello() -> impl Responder {
     HttpResponse::Ok().body("Hello world!")
@@ -56,6 +67,13 @@ async fn echo(req_body: String) -> impl Responder {
     HttpResponse::Ok().body(req_body)
 }
 
+#[utoipa::path(
+    get,
+    path = "/hey",
+    responses(
+        (status = 200, description = "Test manual route /hey", body = String),
+    ),
+)]
 async fn manual_hello() -> impl Responder {
     HttpResponse::Ok().body("Hey there!")
 }
@@ -68,7 +86,15 @@ async fn manual_test_default_route(request: HttpRequest) -> impl Responder {
     ));
 }
 
-async fn manual_test_show_request(request: HttpRequest) -> impl Responder {
+#[utoipa::path(
+    get,
+    path = "/show_request",
+    responses(
+        (status = 200, description = "Shows HttpRequest", body = String),
+    ),
+)]
+#[get("/show_request")]
+async fn show_request(request: HttpRequest) -> impl Responder {
     return HttpResponse::Ok().body(format!(
         "<!DOCTYPE html><head></head><body>test-show-request:<br/>uri: {}<br/>method: {}<body>",
         request.uri(),
@@ -109,31 +135,70 @@ async fn main() -> io::Result<()> {
     let _result_log_guards = init_logging_and_metrics(&opt);
 
     // Log the full command that was run and the git version
-    info!("\"{}\"", std::env::args().collect::<Vec<_>>().join(" "));
+    println!("\"{}\"", std::env::args().collect::<Vec<_>>().join(" "));
     let version = ant_build_info::git_info();
-    info!("autonomi client built with git version: {version}");
     println!("autonomi client built with git version: {version}");
 
-    // commands::handle_subcommand(opt).await?;
+    // utoipa_openapi(); // Print utoipa OpenAPI JSON
 
     HttpServer::new(|| {
         App::new()
-            .service(hello)
-            .service(echo)
-            .service(test_fetch_file)
+            .service(show_request)
+            // .service(get_pet_by_id)
+            .service(test::test_hello)
             .route("/hey", web::get().to(manual_hello))
-            .route(
-                "/test-show-request",
-                web::get().to(manual_test_show_request),
-            )
-            .route("/test-connect", web::get().to(manual_test_connect))
+            // .route(
+            //     "/test-show-request",
+            //     web::get().to(manual_test_show_request),
+            // )
+            // .route("/test-connect", web::get().to(manual_test_connect))
             // .service(web::scope("/awf").default_service(web::get().to(manual_test_default_route)))
-            .default_service(web::get().to(manual_test_default_route))
+            .service(
+                SwaggerUi::new("/swagger-ui/{_:.*}")
+                    .url("/api-docs/openapi.json", ApiDoc::openapi()),
+            )
+        // .default_service(web::get().to(manual_test_default_route))
     })
-    .keep_alive(Duration::from_secs(CONNECTION_TIMEOUT))
+    // .keep_alive(Duration::from_secs(CONNECTION_TIMEOUT))
     .bind(("127.0.0.1", 8081))?
     .run()
     .await
+}
+
+use utoipa::{OpenApi, ToSchema};
+
+#[derive(ToSchema)]
+struct Pet {
+    id: u64,
+    name: Option<String>,
+    age: Option<i32>,
+}
+
+/// Get pet by id
+///
+/// Get pet from database by pet id
+#[utoipa::path(
+    get,
+    path = "/pets/{id}",
+    responses(
+        (status = 200, description = "Pet found successfully", body = Pet),
+        (status = NOT_FOUND, description = "Pet was not found")
+    ),
+    params(
+        ("id" = u64, Path, description = "Pet database id to get Pet for"),
+    )
+)]
+// #[get("/pets/{id}")]
+async fn get_pet_by_id(pet_id: u64) -> Result<Pet> {
+    Ok(Pet {
+        id: pet_id,
+        age: None,
+        name: Some("lightning".to_string()),
+    })
+}
+
+fn utoipa_openapi() {
+    println!("{}", ApiDoc::openapi().to_pretty_json().unwrap());
 }
 
 fn init_logging_and_metrics(opt: &Opt) -> Result<(ReloadHandle, Option<WorkerGuard>)> {
