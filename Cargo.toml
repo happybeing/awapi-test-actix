@@ -64,9 +64,11 @@ walkdir = "2.5.0"
 xor_name = "5.0.0"
 utf-8 = "0.7.6"
 
-utoipa = "5.3.1"
+utoipa = { version = "5.3.1", features = ["actix_extras"] }
 utoipa-swagger-ui = { version = "9.0.0", features = ["reqwest", "actix-web"] }
-#utoipa-swagger-ui = { version = "9.0.0", features = ["reqwest", "actix-web", "debug-embed"] }
 utoipauto = "0.2.0"
+
+#utoipa = "5.3.1"
+#utoipa-swagger-ui = { version = "9.0.0", features = ["reqwest", "actix-web", "debug-embed"] }
 #utoipa = { version = "5.0.0", features = ["preserve_path_order"] }
 

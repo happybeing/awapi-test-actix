@@ -53,7 +53,6 @@ const CONNECTION_TIMEOUT: u64 = 75;
 #[utoipauto(paths = "./src")]
 #[derive(Debug, OpenApi)]
 #[openapi(info(title = "Some Test Api"))]
-#[openapi(paths(get_pet_by_id, show_request, test::test_hello))]
 pub(crate) struct ApiDoc;
 // struct ApiDoc;
 
