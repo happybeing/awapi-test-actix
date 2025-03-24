@@ -30,8 +30,9 @@ use std::time::Duration;
 
 use clap::Parser;
 use color_eyre::{eyre::eyre, Result};
+use utoipa_actix_web;
+use utoipa_actix_web::{scope, AppExt};
 use utoipa_swagger_ui::SwaggerUi;
-use utoipauto::utoipauto;
 use xor_name::XorName;
 
 use dweb::autonomi::access;
@@ -49,8 +50,6 @@ use actix_web::{get, post, web, App, HttpRequest, HttpResponse, HttpServer, Resp
 
 const CONNECTION_TIMEOUT: u64 = 75;
 
-// Rust analyzer reports an error here but it can be ignored (https://github.com/ProbablyClem/utoipauto/issues/36)
-#[utoipauto(paths = "./src")]
 #[derive(Debug, OpenApi)]
 #[openapi(info(title = "Some Test Api"))]
 pub(crate) struct ApiDoc;
@@ -73,8 +72,13 @@ async fn echo(req_body: String) -> impl Responder {
         (status = 200, description = "Test manual route /hey", body = String),
     ),
 )]
+#[get("hey")]
+async fn hey() -> impl Responder {
+    HttpResponse::Ok().body("hey() Hey there!")
+}
+
 async fn manual_hello() -> impl Responder {
-    HttpResponse::Ok().body("Hey there!")
+    HttpResponse::Ok().body("manual_hello() Hey there!")
 }
 
 async fn manual_test_default_route(request: HttpRequest) -> impl Responder {
@@ -142,20 +146,25 @@ async fn main() -> io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
+            .into_utoipa_app()
             .service(show_request)
             // .service(get_pet_by_id)
             .service(test::test_hello)
-            .route("/hey", web::get().to(manual_hello))
+            .service(hey)
             // .route(
             //     "/test-show-request",
             //     web::get().to(manual_test_show_request),
             // )
             // .route("/test-connect", web::get().to(manual_test_connect))
             // .service(web::scope("/awf").default_service(web::get().to(manual_test_default_route)))
-            .service(
-                SwaggerUi::new("/swagger-ui/{_:.*}")
-                    .url("/api-docs/openapi.json", ApiDoc::openapi()),
-            )
+            .openapi_service(|api| {
+                SwaggerUi::new("/swagger-ui/{_:.*}").url("/api/openapi.json", api)
+            })
+            // .service(
+            //     SwaggerUi::new("/swagger-ui/{_:.*}")
+            //         .url("/api-docs/openapi.json", ApiDoc::openapi()),
+            // )
+            .into_app()
         // .default_service(web::get().to(manual_test_default_route))
     })
     // .keep_alive(Duration::from_secs(CONNECTION_TIMEOUT))

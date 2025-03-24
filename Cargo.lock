@@ -1508,8 +1508,8 @@ dependencies = [
  "tracing",
  "utf-8",
  "utoipa",
+ "utoipa-actix-web",
  "utoipa-swagger-ui",
- "utoipauto",
  "walkdir",
  "xor_name",
 ]
@@ -7249,6 +7249,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "utoipa-actix-web"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7eda9c23c05af0fb812f6a177514047331dac4851a2c8e9c4b895d6d826967f"
+dependencies = [
+ "actix-service",
+ "actix-web",
+ "utoipa",
+]
+
+[[package]]
 name = "utoipa-gen"
 version = "5.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7256,6 +7267,7 @@ checksum = "a77d306bc75294fd52f3e99b13ece67c02c1a2789190a6f31d32f736624326f7"
 dependencies = [
  "proc-macro2",
  "quote",
+ "regex",
  "syn 2.0.100",
 ]
 
@@ -7276,38 +7288,6 @@ dependencies = [
  "url",
  "utoipa",
  "zip",
-]
-
-[[package]]
-name = "utoipauto"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cba36db2c397c614110554a60fbb4bb97d5f8c6823775c766e6f455e37377047"
-dependencies = [
- "utoipauto-macro",
-]
-
-[[package]]
-name = "utoipauto-core"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "268d76aaebb80eba79240b805972e52d7d410d4bcc52321b951318b0f440cd60"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.100",
-]
-
-[[package]]
-name = "utoipauto-macro"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "382673bda1d05c85b4550d32fd4192ccd4cffe9a908543a0795d1e7682b36246"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.100",
- "utoipauto-core",
 ]
 
 [[package]]
